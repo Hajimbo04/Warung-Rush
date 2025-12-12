@@ -27,6 +27,7 @@ public class TypingController : MonoBehaviour
             else
             {
                 currentInput += c;
+                // Optional: Add a quiet "click" sound here later!
             }
         }
         UpdateUI();
@@ -49,13 +50,12 @@ public class TypingController : MonoBehaviour
         {
             Debug.Log("Sedap!");
             
-            // 1. Add Score & Combo
-            if(GameManager.Instance != null)
-            {
-                GameManager.Instance.AddScore(targetCustomer.myScoreValue);
-            }
+            // --- JUICE ADDED HERE ---
+            if(AudioManager.Instance != null) AudioManager.Instance.PlayCorrect();
+            if(FeedbackManager.Instance != null) FeedbackManager.Instance.TriggerSuccessFX(targetCustomer.transform.position);
+            // ------------------------
 
-            // 2. Move queue
+            if(GameManager.Instance != null) GameManager.Instance.AddScore(targetCustomer.myScoreValue);
             CustomerSpawner.Instance.OnOrderCompleted(); 
             currentInput = "";
         }
@@ -63,12 +63,12 @@ public class TypingController : MonoBehaviour
         {
             Debug.Log("Salah Order!");
             
-            // 1. Reset Combo :(
-            if(GameManager.Instance != null)
-            {
-                GameManager.Instance.ResetCombo();
-            }
+            // --- JUICE ADDED HERE ---
+            if(AudioManager.Instance != null) AudioManager.Instance.PlayWrong();
+            if(FeedbackManager.Instance != null) FeedbackManager.Instance.TriggerFailFX(); // Shake!
+            // ------------------------
 
+            if(GameManager.Instance != null) GameManager.Instance.ResetCombo();
             currentInput = ""; 
         }
     }
