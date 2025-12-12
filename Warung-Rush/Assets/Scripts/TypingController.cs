@@ -27,7 +27,6 @@ public class TypingController : MonoBehaviour
             else
             {
                 currentInput += c;
-                // Optional: Add a quiet "click" sound here later!
             }
         }
         UpdateUI();
@@ -50,12 +49,28 @@ public class TypingController : MonoBehaviour
         {
             Debug.Log("Sedap!");
             
-            // --- JUICE ADDED HERE ---
+            // --- JUICE ---
             if(AudioManager.Instance != null) AudioManager.Instance.PlayCorrect();
             if(FeedbackManager.Instance != null) FeedbackManager.Instance.TriggerSuccessFX(targetCustomer.transform.position);
-            // ------------------------
 
-            if(GameManager.Instance != null) GameManager.Instance.AddScore(targetCustomer.myScoreValue);
+            // --- SPEED BONUS LOGIC ---
+            int finalPoints = targetCustomer.myScoreValue;
+            
+            // Calculate how long the customer has been alive
+            float timeTaken = Time.time - targetCustomer.spawnTime;
+            
+            if (timeTaken < 3.0f)
+            {
+                // Speed Bonus!
+                finalPoints += 50;
+                Debug.Log($"Laju Gila! {timeTaken.ToString("F2")}s (+50 Bonus)");
+                
+                // Optional: You could trigger a specific "Whoosh" sound here later
+            }
+            // -------------------------
+
+            if(GameManager.Instance != null) GameManager.Instance.AddScore(finalPoints);
+            
             CustomerSpawner.Instance.OnOrderCompleted(); 
             currentInput = "";
         }
@@ -63,10 +78,9 @@ public class TypingController : MonoBehaviour
         {
             Debug.Log("Salah Order!");
             
-            // --- JUICE ADDED HERE ---
+            // --- JUICE ---
             if(AudioManager.Instance != null) AudioManager.Instance.PlayWrong();
-            if(FeedbackManager.Instance != null) FeedbackManager.Instance.TriggerFailFX(); // Shake!
-            // ------------------------
+            if(FeedbackManager.Instance != null) FeedbackManager.Instance.TriggerFailFX();
 
             if(GameManager.Instance != null) GameManager.Instance.ResetCombo();
             currentInput = ""; 

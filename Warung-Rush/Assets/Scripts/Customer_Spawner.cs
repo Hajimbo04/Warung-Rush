@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 public class CustomerSpawner : MonoBehaviour
@@ -9,6 +10,13 @@ public class CustomerSpawner : MonoBehaviour
     public GameObject customerPrefab;
     public Transform spawnPoint;
 
+    [Header("Pacing Settings")]
+    public float normalSpawnDelay = 0.5f; 
+    public float panicSpawnDelay = 0.0f; 
+
+    [Header("Special Customer Chances")]
+    [Range(0f, 1f)] public float specialChance = 0.02f; // 2% chance for EACH type
+
     [Header("Menu Data")]
     public List<string> easyOrders = new List<string>();
     public List<string> mediumOrders = new List<string>();
@@ -17,6 +25,9 @@ public class CustomerSpawner : MonoBehaviour
     [Header("Runtime State")]
     public Customer currentCustomer;
 
+    // Internal flag to track if the NEXT spawn should be instant (Student Kid effect)
+    private bool forceInstantSpawn = false;
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -24,50 +35,97 @@ public class CustomerSpawner : MonoBehaviour
 
     public void SpawnNextCustomer()
     {
-        if (customerPrefab == null || spawnPoint == null) return;
+        StartCoroutine(SpawnProcess());
+    }
 
-        float time = 0;
-        if (GameManager.Instance != null) time = GameManager.Instance.currentTime;
+    IEnumerator SpawnProcess()
+    {
+        float timeRemaining = 0;
+        if (GameManager.Instance != null) 
+            timeRemaining = GameManager.Instance.currentTime;
 
-        List<string> selectedList;
-        int basePoints = 0;
+        // 1. Calculate Delay
+        float delay = normalSpawnDelay;
 
-        // 1. Determine Difficulty & Points
-        if (time > 14) 
+        // Condition A: Panic Mode (Last 6s) -> Instant
+        if (timeRemaining <= 6.0f)
+        {
+            delay = panicSpawnDelay;
+        }
+        // Condition B: Student Group Effect -> Instant
+        else if (forceInstantSpawn)
+        {
+            delay = 0f;
+            forceInstantSpawn = false; // Reset the flag after using it
+        }
+
+        yield return new WaitForSeconds(delay);
+
+        // 2. Determine Difficulty List
+        List<string> selectedList = new List<string>();
+        int basePoints = 100;
+
+        if (timeRemaining > 14.0f)
         {
             selectedList = easyOrders;
             basePoints = 100;
         }
-        else if (time > 6) 
+        else if (timeRemaining > 7.0f) 
         {
-            if(Random.value > 0.8f) { selectedList = hardOrders; basePoints = 300; }
-            else { selectedList = mediumOrders; basePoints = 200; }
+            selectedList = mediumOrders;
+            basePoints = 200;
         }
         else 
         {
-            // Panic Mode
-            if(Random.value > 0.5f) { selectedList = easyOrders; basePoints = 100; }
-            else { selectedList = mediumOrders; basePoints = 200; }
+            selectedList = hardOrders;
+            basePoints = 300;
         }
 
-        if (selectedList.Count == 0) selectedList = easyOrders;
+        if (selectedList == null || selectedList.Count == 0) selectedList = easyOrders;
 
-        string randomOrder = selectedList[Random.Range(0, selectedList.Count)];
+        // 3. Pick Basic Order
+        string finalOrder = selectedList[Random.Range(0, selectedList.Count)];
+        bool isSpecialVisual = false; // To turn them Gold
 
-        // 2. Check for "Tok Abah" (Special Customer) - 10% Chance
-        bool isSpecial = (Random.value < 0.1f);
-        if (isSpecial)
+        // 4. Roll for SPECIAL CUSTOMERS (The Logic Injection)
+        // We use a random roll to see if we get a special type
+        float roll = Random.value; 
+
+        if (roll < specialChance) 
         {
-            basePoints *= 2; // Double points!
-            randomOrder = "Air Kosong"; // Tok Abah always orders simple things
+            // TYPE 1: TOK ABAH (2x Points, Simple Order)
+            // "Cucu, bagi atuk air kosong je."
+            basePoints *= 2;
+            finalOrder = "Air Kosong"; 
+            isSpecialVisual = true; 
+            Debug.Log("Spawned: Tok Abah!");
+        }
+        else if (roll < (specialChance * 2))
+        {
+            // TYPE 2: MAT SALLEH (+100 Bonus)
+            basePoints += 100;
+            // Order stays the same (just mispronounced in lore)
+            isSpecialVisual = true;
+            Debug.Log("Spawned: Mat Salleh!");
+        }
+        else if (roll < (specialChance * 3))
+        {
+            // TYPE 3: STUDENT GROUP KID (Next Spawn is Instant)
+            // No score bonus, but sets the flag for the NEXT loop
+            forceInstantSpawn = true;
+            // Maybe make them slightly faster to type? Keep standard order.
+            Debug.Log("Spawned: Student Kid (Rush incoming!)");
         }
 
-        // 3. Spawn
-        GameObject newObj = Instantiate(customerPrefab, spawnPoint.position, Quaternion.identity);
-        currentCustomer = newObj.GetComponent<Customer>();
-        
-        // Pass the data to the customer
-        currentCustomer.SetupCustomer(randomOrder, basePoints, isSpecial);
+        // 5. Instantiate
+        if (customerPrefab != null && spawnPoint != null)
+        {
+            GameObject newObj = Instantiate(customerPrefab, spawnPoint.position, Quaternion.identity);
+            currentCustomer = newObj.GetComponent<Customer>();
+            
+            // Pass the modified points and order to the existing system
+            currentCustomer.SetupCustomer(finalOrder, basePoints, isSpecialVisual);
+        }
     }
 
     public void OnOrderCompleted()

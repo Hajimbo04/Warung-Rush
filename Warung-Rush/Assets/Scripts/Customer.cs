@@ -10,27 +10,31 @@ public class Customer : MonoBehaviour
     [HideInInspector]
     public string myOrderString;
     [HideInInspector]
-    public int myScoreValue; // How much this customer is worth
+    public int myScoreValue;
+    
+    // NEW: Track when this customer appeared
+    [HideInInspector]
+    public float spawnTime; 
 
     public void SetupCustomer(string order, int points, bool isSpecial)
     {
         myOrderString = order;
         myScoreValue = points;
+        
+        // RECORD THE TIME NOW
+        spawnTime = Time.time;
 
         if (orderText != null) orderText.text = myOrderString;
 
-        // Visuals for Special Customer (Tok Abah)
+        // Visuals for Special Customer
         if (isSpecial && bodyRenderer != null)
         {
-            // Turn Gold!
-            bodyRenderer.material.color = new Color(1f, 0.8f, 0f); 
-            // Make text bigger for special
+            bodyRenderer.material.color = new Color(1f, 0.8f, 0f); // Gold
             orderText.fontSize += 2;
         }
         else if (bodyRenderer != null)
         {
-            // Reset to normal (Blue/White) just in case
-            bodyRenderer.material.color = Color.white; // Or whatever your default is
+            bodyRenderer.material.color = Color.white; 
         }
     }
 

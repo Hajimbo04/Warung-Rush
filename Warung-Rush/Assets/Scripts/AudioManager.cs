@@ -12,6 +12,9 @@ public class AudioManager : MonoBehaviour
     public AudioClip correctClip;
     public AudioClip wrongClip;
     public AudioClip gameOverClip;
+    
+    // NEW: The countdown beep
+    public AudioClip timerBeepClip; 
 
     private void Awake()
     {
@@ -31,5 +34,11 @@ public class AudioManager : MonoBehaviour
     public void PlayGameOver()
     {
         if(gameOverClip != null) sfxSource.PlayOneShot(gameOverClip);
+    }
+
+    // NEW FUNCTION
+    public void PlayBeep()
+    {
+        if(timerBeepClip != null) sfxSource.PlayOneShot(timerBeepClip);
     }
 }
