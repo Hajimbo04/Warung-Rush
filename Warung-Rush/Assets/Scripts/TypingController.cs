@@ -39,7 +39,12 @@ public class TypingController : MonoBehaviour
 
     void CheckOrder()
     {
+        // 1. We define 'targetCustomer' ONCE here at the top
         Customer targetCustomer = CustomerSpawner.Instance.currentCustomer;
+        
+        // Safety check just in case
+        if (targetCustomer == null) return;
+
         string target = targetCustomer.myOrderString;
 
         string cleanInput = currentInput.Trim().ToLower();
@@ -56,16 +61,12 @@ public class TypingController : MonoBehaviour
             // --- SPEED BONUS LOGIC ---
             int finalPoints = targetCustomer.myScoreValue;
             
-            // Calculate how long the customer has been alive
             float timeTaken = Time.time - targetCustomer.spawnTime;
             
             if (timeTaken < 3.0f)
             {
-                // Speed Bonus!
                 finalPoints += 50;
                 Debug.Log($"Laju Gila! {timeTaken.ToString("F2")}s (+50 Bonus)");
-                
-                // Optional: You could trigger a specific "Whoosh" sound here later
             }
             // -------------------------
 
@@ -81,6 +82,13 @@ public class TypingController : MonoBehaviour
             // --- JUICE ---
             if(AudioManager.Instance != null) AudioManager.Instance.PlayWrong();
             if(FeedbackManager.Instance != null) FeedbackManager.Instance.TriggerFailFX();
+
+            // 2. NEW: Tell the customer to look sad!
+            // FIX: We just use the 'targetCustomer' variable from the top. We do NOT redeclare it.
+            if (targetCustomer != null)
+            {
+                targetCustomer.ReactToError();
+            }
 
             if(GameManager.Instance != null) GameManager.Instance.ResetCombo();
             currentInput = ""; 

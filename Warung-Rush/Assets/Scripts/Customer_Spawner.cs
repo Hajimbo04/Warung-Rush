@@ -6,6 +6,9 @@ public class CustomerSpawner : MonoBehaviour
 {
     public static CustomerSpawner Instance;
 
+    [Header("Visuals")]
+    public List<Sprite> bodySprites; // Drag your different body shapes here
+
     [Header("Settings")]
     public GameObject customerPrefab;
     public Transform spawnPoint;
@@ -125,6 +128,17 @@ public class CustomerSpawner : MonoBehaviour
             
             // Pass the modified points and order to the existing system
             currentCustomer.SetupCustomer(finalOrder, basePoints, isSpecialVisual);
+
+            if (bodySprites.Count > 0 && currentCustomer.bodyRenderer != null && !isSpecialVisual)
+            {
+                // Pick a random body shape
+                Sprite randomBody = bodySprites[Random.Range(0, bodySprites.Count)];
+                currentCustomer.bodyRenderer.sprite = randomBody;
+                
+                // Optional: Tint it a random color for even more variety!
+                currentCustomer.bodyRenderer.color = Random.ColorHSV(0f, 1f, 0.5f, 1f, 0.8f, 1f);
+            }
+
         }
     }
 
