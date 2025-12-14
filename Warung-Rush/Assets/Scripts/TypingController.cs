@@ -34,7 +34,15 @@ public class TypingController : MonoBehaviour
 
     void UpdateUI()
     {
-        if (playerInputText != null) playerInputText.text = currentInput;
+        if (playerInputText != null)
+        {
+            // Blinking Cursor Logic: Toggles every 0.5 seconds
+            // If the remainder of Time.time / 1.0 is less than 0.5, show cursor.
+            string cursor = (Time.time % 1.0f < 0.5f) ? "|" : "";
+            
+            // Add the cursor to the end of the input string
+            playerInputText.text = currentInput + cursor;
+        }
     }
 
     void CheckOrder()
@@ -84,7 +92,6 @@ public class TypingController : MonoBehaviour
             if(FeedbackManager.Instance != null) FeedbackManager.Instance.TriggerFailFX();
 
             // 2. NEW: Tell the customer to look sad!
-            // FIX: We just use the 'targetCustomer' variable from the top. We do NOT redeclare it.
             if (targetCustomer != null)
             {
                 targetCustomer.ReactToError();
