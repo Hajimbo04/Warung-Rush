@@ -36,47 +36,34 @@ public class TypingController : MonoBehaviour
     {
         if (playerInputText != null)
         {
-            // Blinking Cursor Logic: Toggles every 0.5 seconds
-            // If the remainder of Time.time / 1.0 is less than 0.5, show cursor.
             string cursor = (Time.time % 1.0f < 0.5f) ? "|" : "";
-            
-            // Add the cursor to the end of the input string
             playerInputText.text = currentInput + cursor;
         }
     }
 
     void CheckOrder()
     {
-        // 1. We define 'targetCustomer' ONCE here at the top
         Customer targetCustomer = CustomerSpawner.Instance.currentCustomer;
-        
-        // Safety check just in case
         if (targetCustomer == null) return;
 
         string target = targetCustomer.myOrderString;
-
         string cleanInput = currentInput.Trim().ToLower();
         string cleanTarget = target.Trim().ToLower();
 
         if (cleanInput == cleanTarget)
         {
-            Debug.Log("Sedap!");
-            
-            // --- JUICE ---
+            // Success Logic
             if(AudioManager.Instance != null) AudioManager.Instance.PlayCorrect();
             if(FeedbackManager.Instance != null) FeedbackManager.Instance.TriggerSuccessFX(targetCustomer.transform.position);
 
-            // --- SPEED BONUS LOGIC ---
             int finalPoints = targetCustomer.myScoreValue;
             
             float timeTaken = Time.time - targetCustomer.spawnTime;
-            
             if (timeTaken < 3.0f)
             {
-                finalPoints += 50;
-                Debug.Log($"Laju Gila! {timeTaken.ToString("F2")}s (+50 Bonus)");
+                // Speed Bonus: 50 cents (RM 0.50)
+                finalPoints += 50; 
             }
-            // -------------------------
 
             if(GameManager.Instance != null) GameManager.Instance.AddScore(finalPoints);
             
@@ -85,17 +72,11 @@ public class TypingController : MonoBehaviour
         }
         else
         {
-            Debug.Log("Salah Order!");
-            
-            // --- JUICE ---
+            // Fail Logic
             if(AudioManager.Instance != null) AudioManager.Instance.PlayWrong();
             if(FeedbackManager.Instance != null) FeedbackManager.Instance.TriggerFailFX();
 
-            // 2. NEW: Tell the customer to look sad!
-            if (targetCustomer != null)
-            {
-                targetCustomer.ReactToError();
-            }
+            if (targetCustomer != null) targetCustomer.ReactToError();
 
             if(GameManager.Instance != null) GameManager.Instance.ResetCombo();
             currentInput = ""; 

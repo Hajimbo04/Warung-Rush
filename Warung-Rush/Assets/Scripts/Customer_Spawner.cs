@@ -66,23 +66,25 @@ public class CustomerSpawner : MonoBehaviour
 
         // 2. Determine Difficulty List
         List<string> selectedList = new List<string>();
-        int basePoints = 100;
+        int basePoints = 150;
 
+        // --- NEW PRICING LOGIC (IN CENTS) ---
         if (timeRemaining > 14.0f)
         {
             selectedList = easyOrders;
-            basePoints = 100;
+            basePoints = 200; // RM 2.00 (Teh O / Roti)
         }
         else if (timeRemaining > 7.0f) 
         {
             selectedList = mediumOrders;
-            basePoints = 200;
+            basePoints = 550; // RM 5.50 (Mee Goreng / Nasi Lemak)
         }
         else 
         {
             selectedList = hardOrders;
-            basePoints = 300;
+            basePoints = 850; // RM 8.50 (Mamak Special)
         }
+        // -------------------------------------
 
         if (selectedList == null || selectedList.Count == 0) selectedList = easyOrders;
 
