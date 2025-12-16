@@ -1,6 +1,6 @@
 using UnityEngine;
 using TMPro;
-using UnityEngine.UI; // Needed for Image and Slider
+using UnityEngine.UI; 
 using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
@@ -11,10 +11,12 @@ public class GameManager : MonoBehaviour
     public float totalTime = 20f;
     public bool isGameActive = false;
 
-    [Header("Score & Combo")]
+    [Header("Score & Stats")]
     public int currentScore = 0;
-    public int currentCombo = 1;
-    public int maxCombo = 5;
+    public int currentStreak = 0; // Uncapped streak (for stats)
+    public int highestStreak = 0; // The record for this session
+    public int currentComboMultiplier = 1; // Capped at x5 (for score math)
+    public int maxComboMultiplier = 5;
 
     [Header("UI References")]
     public Slider timerSlider; 
@@ -23,16 +25,18 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI comboText;
     public GameObject gameOverPanel;
-    public TextMeshProUGUI finalScoreText;
+    
+    [Header("Game Over UI")]
+    public TextMeshProUGUI finalScoreText; // "Total Sales: RM 500"
+    public TextMeshProUGUI finalComboText; // NEW: "Max Streak: 20"
+    public TextMeshProUGUI highScoreText;  // NEW: "Best Record: RM 1200"
 
     [Header("Juice Settings")]
     public float shakeIntensity = 5f; 
 
-    [Header("Ambience (Day/Night Cycle)")]
-    public Image ambienceOverlay; // Drag a UI Panel here
-    // Start: Transparent (Clear day)
+    [Header("Ambience")]
+    public Image ambienceOverlay; 
     public Color dayColor = new Color(1f, 1f, 1f, 0f); 
-    // End: Dark Purple/Orange tint (Maghrib vibe)
     public Color eveningColor = new Color(0.2f, 0.1f, 0.4f, 0.5f); 
 
     public float currentTime;
@@ -54,7 +58,6 @@ public class GameManager : MonoBehaviour
             timerRect = timerSlider.GetComponent<RectTransform>();
             originalTimerPos = timerRect.anchoredPosition; 
         }
-
         StartGame();
     }
 
@@ -63,7 +66,12 @@ public class GameManager : MonoBehaviour
         currentTime = totalTime;
         isGameActive = true;
         currentScore = 0;
-        currentCombo = 1;
+        
+        // Reset Stats
+        currentStreak = 0;
+        highestStreak = 0;
+        currentComboMultiplier = 1;
+        
         lastBeepSecond = -1;
         UpdateScoreUI();
 
@@ -75,10 +83,7 @@ public class GameManager : MonoBehaviour
         }
         
         if (timerFillImage != null) timerFillImage.color = Color.green;
-
-        // Reset Ambience
         if (ambienceOverlay != null) ambienceOverlay.color = dayColor;
-
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (CustomerSpawner.Instance != null) CustomerSpawner.Instance.SpawnNextCustomer();
     }
@@ -91,23 +96,15 @@ public class GameManager : MonoBehaviour
             
             if (timerSlider != null) timerSlider.value = currentTime;
 
-            // --- COLOR LOGIC (Timer) ---
+            // Colors & Ambience
             if (timerFillImage != null)
             {
                 float t = currentTime / totalTime;
                 timerFillImage.color = Color.Lerp(Color.red, Color.green, t);
+                if (ambienceOverlay != null) ambienceOverlay.color = Color.Lerp(eveningColor, dayColor, t);
             }
 
-            // --- AMBIENCE LOGIC (Day to Night) ---
-            if (ambienceOverlay != null)
-            {
-                float t = currentTime / totalTime; // 1.0 (Start) -> 0.0 (End)
-                // Lerp from Evening (0) to Day (1)
-                ambienceOverlay.color = Color.Lerp(eveningColor, dayColor, t);
-            }
-            // -------------------------------------
-
-            // --- SHAKE LOGIC ---
+            // Shake & Audio
             if (currentTime <= 5.0f && currentTime > 0.0f)
             {
                 int currentSecondInt = Mathf.CeilToInt(currentTime);
@@ -134,22 +131,35 @@ public class GameManager : MonoBehaviour
 
     public void AddScore(int basePoints)
     {
-        int pointsToAdd = basePoints * currentCombo;
+        // 1. Calculate Score
+        int pointsToAdd = basePoints * currentComboMultiplier;
         currentScore += pointsToAdd;
-        if (currentCombo < maxCombo) currentCombo++;
+
+        // 2. Increase Multiplier (Capped)
+        if (currentComboMultiplier < maxComboMultiplier) currentComboMultiplier++;
+
+        // 3. Track Streak (Uncapped)
+        currentStreak++;
+        if (currentStreak > highestStreak)
+        {
+            highestStreak = currentStreak;
+        }
+
         UpdateScoreUI();
     }
 
     public void ResetCombo()
     {
-        currentCombo = 1;
+        currentComboMultiplier = 1;
+        currentStreak = 0; // Reset streak on fail
         UpdateScoreUI();
     }
 
     void UpdateScoreUI()
     {
         if (scoreText != null) scoreText.text = "RM " + currentScore.ToString();
-        if (comboText != null) comboText.text = "x" + currentCombo.ToString();
+        // Show Multiplier or Streak? Let's show Multiplier for gameplay feedback
+        if (comboText != null) comboText.text = "x" + currentComboMultiplier.ToString();
     }
 
     public void EndGame()
@@ -159,10 +169,31 @@ public class GameManager : MonoBehaviour
         
         if (DoorController.Instance != null) DoorController.Instance.CloseShut();
 
+        // --- HANDLE HIGH SCORE ---
+        int savedHighScore = PlayerPrefs.GetInt("HighScore", 0);
+        if (currentScore > savedHighScore)
+        {
+            savedHighScore = currentScore;
+            PlayerPrefs.SetInt("HighScore", savedHighScore);
+            PlayerPrefs.Save();
+        }
+        // -------------------------
+
         if (gameOverPanel != null)
         {
             gameOverPanel.SetActive(true);
-            if(finalScoreText != null) finalScoreText.text = "Total Sales: RM " + currentScore;
+            
+            // 1. Total Sales
+            if(finalScoreText != null) 
+                finalScoreText.text = "Total Sales: RM " + currentScore;
+
+            // 2. Max Streak (NEW)
+            if(finalComboText != null) 
+                finalComboText.text = "Max Combo: " + highestStreak;
+
+            // 3. High Score (NEW)
+            if(highScoreText != null)
+                highScoreText.text = "Best Record: RM " + savedHighScore;
         }
         
         if(AudioManager.Instance != null) AudioManager.Instance.PlayGameOver();
