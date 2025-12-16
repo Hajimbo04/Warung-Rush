@@ -129,14 +129,15 @@ public class CustomerSpawner : MonoBehaviour
             // Pass the modified points and order to the existing system
             currentCustomer.SetupCustomer(finalOrder, basePoints, isSpecialVisual);
 
+            // This block handles setting the sprite and clearing the color for NON-special customers.
             if (bodySprites.Count > 0 && currentCustomer.bodyRenderer != null && !isSpecialVisual)
             {
                 // Pick a random body shape
                 Sprite randomBody = bodySprites[Random.Range(0, bodySprites.Count)];
                 currentCustomer.bodyRenderer.sprite = randomBody;
                 
-                // Optional: Tint it a random color for even more variety!
-                currentCustomer.bodyRenderer.color = Random.ColorHSV(0f, 1f, 0.5f, 1f, 0.8f, 1f);
+                // Set color back to white (no tinting), removing the old Random.ColorHSV line.
+                currentCustomer.bodyRenderer.color = Color.white; 
             }
 
         }
