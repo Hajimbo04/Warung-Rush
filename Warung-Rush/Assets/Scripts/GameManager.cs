@@ -6,19 +6,13 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
-
-    [Header("Game Settings")]
     public float totalTime = 20f;
     public bool isGameActive = false;
-
-    [Header("Score & Stats")]
-    public int currentScore = 0; // Stored in Cents (Sen)
+    public int currentScore = 0; 
     public int currentStreak = 0; 
     public int highestStreak = 0; 
     public int currentComboMultiplier = 1; 
     public int maxComboMultiplier = 5;
-
-    [Header("UI References")]
     public Slider timerSlider; 
     public Image timerFillImage; 
     public TextMeshProUGUI scoreText;
@@ -27,15 +21,10 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI finalScoreText;
     public TextMeshProUGUI finalComboText; 
     public TextMeshProUGUI highScoreText; 
-
-    [Header("Juice Settings")]
     public float shakeIntensity = 5f; 
-
-    [Header("Ambience")]
     public Image ambienceOverlay; 
     public Color dayColor = new Color(1f, 1f, 1f, 0f); 
     public Color eveningColor = new Color(0.2f, 0.1f, 0.4f, 0.5f); 
-
     public float currentTime;
     private int lastBeepSecond = -1;
     private RectTransform timerRect;
@@ -91,7 +80,6 @@ public class GameManager : MonoBehaviour
             
             if (timerSlider != null) timerSlider.value = currentTime;
 
-            // Colors & Ambience
             if (timerFillImage != null)
             {
                 float t = currentTime / totalTime;
@@ -99,7 +87,6 @@ public class GameManager : MonoBehaviour
                 if (ambienceOverlay != null) ambienceOverlay.color = Color.Lerp(eveningColor, dayColor, t);
             }
 
-            // Shake
             if (currentTime <= 5.0f && currentTime > 0.0f)
             {
                 int currentSecondInt = Mathf.CeilToInt(currentTime);
@@ -146,10 +133,7 @@ public class GameManager : MonoBehaviour
 
     void UpdateScoreUI()
     {
-        // --- NEW DISPLAY LOGIC ---
-        // Convert cents to Ringgit (Float) and format with 2 decimals
         float ringgitValue = currentScore / 100.0f;
-        
         if (scoreText != null) scoreText.text = "RM " + ringgitValue.ToString("F2");
         if (comboText != null) comboText.text = "x" + currentComboMultiplier.ToString();
     }
@@ -172,8 +156,6 @@ public class GameManager : MonoBehaviour
         if (gameOverPanel != null)
         {
             gameOverPanel.SetActive(true);
-            
-            // Format Final Score as RM
             float finalRM = currentScore / 100.0f;
             float highRM = savedHighScore / 100.0f;
 

@@ -3,14 +3,11 @@ using System.Collections;
 public class DoorController : MonoBehaviour
 {
     public static DoorController Instance;
-    [Header("UI References")]
-    public RectTransform doorRect; // Assign the ShutterPanel here
-    [Header("Animation Settings")]
+    public RectTransform doorRect; 
     public float dropDuration = 0.8f;
     
-    // We want it to start High (Off Screen) and end Low (0,0)
     private Vector2 openPosition;
-    private Vector2 closedPosition = Vector2.zero; // Center of screen
+    private Vector2 closedPosition = Vector2.zero; 
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -19,7 +16,6 @@ public class DoorController : MonoBehaviour
     {
         if (doorRect != null)
         {
-            // Remember where we started (High up)
             openPosition = doorRect.anchoredPosition;
         }
     }
@@ -33,9 +29,7 @@ public class DoorController : MonoBehaviour
         while (elapsed < dropDuration)
         {
             float t = elapsed / dropDuration;
-// -- BOUNCE EASING FORMULA --
-            // This math creates a "Slam -> Bounce -> Settle" effect
-            // It mimics an EaseOutBounce function
+            // bounce easing formula
             float bounceT = 0f;
             
             if (t < 1 / 2.75f) {
@@ -50,16 +44,10 @@ public class DoorController : MonoBehaviour
                 t -= 2.625f / 2.75f;
                 bounceT = 7.5625f * t * t + 0.984375f;
             }
-            // ---------------------------
-// Lerp from Open (Top) to Closed (0,0)
             doorRect.anchoredPosition = Vector2.Lerp(openPosition, closedPosition, bounceT);
             elapsed += Time.deltaTime;
             yield return null;
         }
-// Snap to final position
         doorRect.anchoredPosition = closedPosition;
-        
-        // Optional: Play a loud "SLAM" sound here!
-        // if(AudioManager.Instance != null) AudioManager.Instance.PlayDoorSlam();
     }
 }

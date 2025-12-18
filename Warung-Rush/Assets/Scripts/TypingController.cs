@@ -3,9 +3,7 @@ using TMPro;
 
 public class TypingController : MonoBehaviour
 {
-    [Header("UI References")]
     public TextMeshProUGUI playerInputText; 
-
     private string currentInput = "";
 
     void Update()
@@ -52,7 +50,6 @@ public class TypingController : MonoBehaviour
 
         if (cleanInput == cleanTarget)
         {
-            // Success Logic
             if(AudioManager.Instance != null) AudioManager.Instance.PlayCorrect();
             if(FeedbackManager.Instance != null) FeedbackManager.Instance.TriggerSuccessFX(targetCustomer.transform.position);
 
@@ -61,7 +58,6 @@ public class TypingController : MonoBehaviour
             float timeTaken = Time.time - targetCustomer.spawnTime;
             if (timeTaken < 3.0f)
             {
-                // Speed Bonus: 50 cents (RM 0.50)
                 finalPoints += 50; 
             }
 
@@ -72,7 +68,6 @@ public class TypingController : MonoBehaviour
         }
         else
         {
-            // Fail Logic
             if(AudioManager.Instance != null) AudioManager.Instance.PlayWrong();
             if(FeedbackManager.Instance != null) FeedbackManager.Instance.TriggerFailFX();
 

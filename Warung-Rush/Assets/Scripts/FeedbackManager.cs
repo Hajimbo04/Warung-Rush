@@ -5,13 +5,12 @@ public class FeedbackManager : MonoBehaviour
 {
     public static FeedbackManager Instance;
 
-    [Header("Screen Shake Settings")]
     public Transform cameraTransform;
     public float shakeDuration = 0.2f;
     public float shakeMagnitude = 0.3f;
 
     [Header("Particles")]
-    public ParticleSystem successParticles; // Drag a particle system here
+    public ParticleSystem successParticles;
 
     private Vector3 originalPos;
     private bool isShaking = false;
@@ -25,7 +24,6 @@ public class FeedbackManager : MonoBehaviour
     {
         if (cameraTransform == null)
         {
-            // Auto-find main camera if not assigned
             cameraTransform = Camera.main.transform;
         }
         originalPos = cameraTransform.localPosition;
@@ -33,7 +31,6 @@ public class FeedbackManager : MonoBehaviour
 
     public void TriggerSuccessFX(Vector3 position)
     {
-        // 1. Play Particles
         if (successParticles != null)
         {
             successParticles.transform.position = position;
@@ -43,13 +40,12 @@ public class FeedbackManager : MonoBehaviour
 
     public void TriggerFailFX()
     {
-        // 1. Shake Screen
         StartCoroutine(Shake());
     }
 
     IEnumerator Shake()
     {
-        if (isShaking) yield break; // Don't double shake
+        if (isShaking) yield break; 
         isShaking = true;
 
         float elapsed = 0.0f;
