@@ -6,7 +6,7 @@ Warung Rush is a fast-paced typing game where you take over a busy Malaysian war
 
 - **Look at the Order:** Check the text floating above the customer's head.
 
-- **Type it out:** Use your keyboard to type the name of the food or drink (e.g., "Teh O", "Nasi Lemak").
+- **Type it out:** Use your keyboard to type the name of the food or drink (e.g., "Teh O", "Nasi Lemak". NOT case sensitive).
 
 - **Serve:** Press Enter to submit the order.
 
